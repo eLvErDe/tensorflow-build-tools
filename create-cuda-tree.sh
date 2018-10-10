@@ -1,23 +1,36 @@
 #!/bin/sh
 
 
+mode="${2}"
+
+
 # Function to display usage and quit with 1
 usage() {
   echo "This script will create a tree matching NVIDIA"
   echo "layout by symlinking files from Debian's packages"
   echo "Output folder must not exist"
+  echo "Mode might be set to debug to show more logs"
   echo ""
-  echo "Usage: ${0} <output_folder>"
+  echo "Usage: ${0} <output_folder> [<mode>]"
   exit 1
 }
 
 
 # Function to log with prefix and level
 log() {
+
   prefix="[create-cuda-tree.sh]"
   lvl="${1}"
   msg="${2}"
+
+  if [ "${lvl}" = "DEBUG" ]; then
+    if [ "${mode}" != "debug" ]; then
+      return
+    fi
+  fi
+
   printf "%s %-7s %s\n" "${prefix}" "${lvl}" "${msg}"
+
 }
 
 
