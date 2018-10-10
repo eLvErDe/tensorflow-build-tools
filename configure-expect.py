@@ -43,6 +43,7 @@ class PexpectTensorFlowConfigure:
             self,
             command: str,
             python_version: str,
+            silent: bool = False,
             with_jemalloc: bool = False,
             with_google_cloud_platform: bool = False,
             with_hdfs: bool = False,
@@ -104,6 +105,7 @@ class PexpectTensorFlowConfigure:
 
         self.command = command
         self.python_version = python_version
+        self.silent = silent
         self.with_jemalloc = bool_y_n(with_jemalloc)
         self.with_google_cloud_platform = bool_y_n(with_google_cloud_platform)
         self.with_hdfs = bool_y_n(with_hdfs)
@@ -177,6 +179,8 @@ class PexpectTensorFlowConfigure:
         parser.add_argument('command', type=str, help='TensorFlow configure script to run')
         parser.add_argument('python_version', type=str, help='Major Python version to build for')
 
+        parser.add_argument('--silent', action='store_true', help='Do not output TensorFlow config questions/answers')
+
         parser.add_argument('--with-jemalloc', action='store_true', help='Use jemalloc as malloc')
         parser.add_argument('--with-google-cloud-platform', action='store_true', help='Enable Google Cloud Platform support')
         parser.add_argument('--with-hdfs', action='store_true', help='Enable Hadoop File System support')
@@ -208,15 +212,15 @@ class PexpectTensorFlowConfigure:
         return parsed
 
 
-    def _pexpect_line_answer(self, question, answer):
+    def _pexpect_line_answer(self, question, answer, timeout=2):
         """ Expect a pattern an provide answer (also display output) """
 
-        if self.script.after is not None:
+        if self.script.after is not None and not self.silent:
             print(self.script.after.decode('utf-8'))
-        self.script.expect(question)
+        self.script.expect(question, timeout=timeout)
         if answer is not None:
             self.script.sendline(answer)
-        if self.script.before is not None:
+        if self.script.before is not None and not self.silent:
             print(self.script.before.decode('utf-8'))
 
 
@@ -224,9 +228,8 @@ class PexpectTensorFlowConfigure:
         """ Run expect against TF configure script an provide answers """
 
         self.script = pexpect.spawn(self.command)
-        self.script.timeout = 2
 
-        self._pexpect_line_answer(r'Please specify the location of python\..*', self.python_bin_path)
+        self._pexpect_line_answer(r'Please specify the location of python\..*', self.python_bin_path, timeout=120) # Give some time to Bazel to extract itself
         self._pexpect_line_answer(r'Please input the desired Python library path to use\..*', self.python_dist_path)
         self._pexpect_line_answer(r'Do you wish to build TensorFlow with jemalloc as malloc support?.*', self.with_jemalloc)
         self._pexpect_line_answer(r'Do you wish to build TensorFlow with Google Cloud Platform support?.*', self.with_google_cloud_platform)
