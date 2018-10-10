@@ -1,13 +1,15 @@
 #!/usr/bin/python3
 
+# pylint: disable=line-too-long
+
 """
 Run TensorFlow configure script using pexpect module to answer questions
 """
 
 import os
 import argparse
-import pexpect
 from typing import Optional, List
+import pexpect
 
 
 class bool_y_n:
@@ -28,6 +30,7 @@ class bool_y_n:
     __str__ = __repr__
 
     def encode(self, encoding):
+        """ pexpect wants str like object """
         return self.__str__().encode(encoding)
 
 
@@ -57,11 +60,11 @@ class PexpectTensorFlowConfigure:
             cuda_path: Optional[str],
             cuda_cudnn_version: Optional[str],
             cuda_cudnn_path: Optional[str],
-            cuda_with_tensorrt: bool=False,
+            cuda_with_tensorrt: bool = False,
             cuda_tensorrt_path: Optional[str],
             cuda_nccl_version: Optional[str],
             cuda_capabilities: Optional[List[str]],
-            cuda_with_clang: bool=False,
+            cuda_with_clang: bool = False,
             cuda_gcc_path: Optional[str],
             mpi_path: Optional[str],
             opts_flags: Optional[List[str]],
@@ -212,7 +215,7 @@ class PexpectTensorFlowConfigure:
             print(self.script.after.decode('utf-8'))
         self.script.expect(question)
         if answer is not None:
-           self.script.sendline(answer)
+            self.script.sendline(answer)
         if self.script.before is not None:
             print(self.script.before.decode('utf-8'))
 
