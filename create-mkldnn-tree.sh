@@ -85,11 +85,13 @@ mkldnn_package=`dpkg-query -W -f='${Package}' libmkldnn?-nonfree-mkl 2>/dev/null
 test -z "${mkldnn_package}" && fatal_error "Unable to detect Intel MKL DNN package name"
 mkldnn_dev_package=`dpkg-query -W -f='${Package}' libmkldnn-nonfree-dev 2>/dev/null`
 test -z "${mkldnn_dev_package}" && fatal_error "Unable to detect Intel MKL DNN dev package name"
-log INFO "Intel MKL DNN packages ${mkldnn_package}/${mkldnn_dev_package} detected"
+mkldnn_doc_package=`dpkg-query -W -f='${Package}' libmkldnn-docs 2>/dev/null`
+test -z "${mkldnn_doc_package}" && fatal_error "Unable to detect Intel MKL DNN doc package name"
+log INFO "Intel MKL DNN packages ${mkldnn_package}/${mkldnn_dev_package}/${mkldnn_doc_package} detected"
 
 
 # Symlink all libraries package content
-for package in ${mkldnn_package} ${mkldnn_dev_package}; do
+for package in ${mkldnn_package} ${mkldnn_dev_package} ${mkldnn_doc_package}; do
 
   log INFO "Symlink files from package ${package}"
 
@@ -103,6 +105,9 @@ for package in ${mkldnn_package} ${mkldnn_dev_package}; do
     # Header
     elif `echo "${file}" | grep -q '^/usr/include/'`; then
       relative_symlink "${file}" "/usr/include/" "${out}/include"
+    # Copyright
+    elif `echo "${file}" | grep -q "^/usr/share/doc/${mkldnn_doc_package}/copyright\$"`; then
+      ln -s "${file}" "${out}/license.txt"
     fi
 
   done
